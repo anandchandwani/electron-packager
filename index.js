@@ -51,7 +51,14 @@ function validateList (list, supported, name) {
 function getNameAndVersion (opts, dir, cb) {
   var props = []
   if (!opts.name) props.push(['productName', 'name'])
-  if (!opts.version) props.push(['dependencies.electron-prebuilt', 'devDependencies.electron-prebuilt'])
+  if (!opts.version) {
+    props.push([
+      'dependencies.electron',
+      'devDependencies.electron',
+      'dependencies.electron-prebuilt',
+      'devDependencies.electron-prebuilt'
+    ])
+  }
 
   // Name and version provided, no need to infer
   if (props.length === 0) return cb(null)
