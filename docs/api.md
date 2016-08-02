@@ -171,6 +171,7 @@ described after the list*):
 
 * the directory specified by the [`out`](#out) parameter
 * `node_modules/.bin`
+* `node_modules/electron`
 * `node_modules/electron-prebuilt`
 * `node_modules/electron-packager`
 * `.git`
