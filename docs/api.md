@@ -253,7 +253,7 @@ Valid values are listed in [Apple's documentation](https://developer.apple.com/l
 
 *String*
 
-Filename of a plist file; the contents are added to the app's plist. Entries in `extend-info` override entries in the base plist file supplied by `electron-prebuilt`, but are overridden by other explicit arguments such as [`app-version`](#app-version) or [`app-bundle-id`](#app-bundle-id).
+Filename of a plist file; the contents are added to the app's plist. Entries in `extend-info` override entries in the base plist file supplied by `electron` or `electron-prebuilt`, but are overridden by other explicit arguments such as [`app-version`](#app-version) or [`app-bundle-id`](#app-bundle-id).
 
 ##### `extra-resource`
 
