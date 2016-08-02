@@ -70,16 +70,25 @@ function getNameAndVersion (opts, dir, cb) {
       debug('Inferring application name from productName or name in package.json')
       opts.name = result.values.productName
     }
-    if (result.values['dependencies.electron-prebuilt']) {
-      resolve('electron-prebuilt', {
-        basedir: path.dirname(result.source['dependencies.electron-prebuilt'].src)
+    if (result.values['dependencies.electron']) {
+      resolve('electron', {
+        basedir: path.dirname(result.source['dependencies.electron'].src)
       }, function (err, res, pkg) {
         if (err) return cb(err)
-        debug('Inferring target Electron version from electron-prebuilt dependency or devDependency in package.json')
+        debug('Inferring target Electron version from electron dependency or devDependency in package.json')
         opts.version = pkg.version
         return cb(null)
       })
-    } else {
+    } else if (result.values['dependencies.electron-prebuilt']) {
+        resolve('electron-prebuilt', {
+          basedir: path.dirname(result.source['dependencies.electron-prebuilt'].src)
+        }, function (err, res, pkg) {
+          if (err) return cb(err)
+          debug('Inferring target Electron version from electron-prebuilt dependency or devDependency in package.json')
+          opts.version = pkg.version
+          return cb(null)
+        })
+      } else {
       return cb(null)
     }
   })
