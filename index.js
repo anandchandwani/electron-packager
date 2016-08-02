@@ -80,15 +80,15 @@ function getNameAndVersion (opts, dir, cb) {
         return cb(null)
       })
     } else if (result.values['dependencies.electron-prebuilt']) {
-        resolve('electron-prebuilt', {
-          basedir: path.dirname(result.source['dependencies.electron-prebuilt'].src)
-        }, function (err, res, pkg) {
-          if (err) return cb(err)
-          debug('Inferring target Electron version from electron-prebuilt dependency or devDependency in package.json')
-          opts.version = pkg.version
-          return cb(null)
-        })
-      } else {
+      resolve('electron-prebuilt', {
+        basedir: path.dirname(result.source['dependencies.electron-prebuilt'].src)
+      }, function (err, res, pkg) {
+        if (err) return cb(err)
+        debug('Inferring target Electron version from electron-prebuilt dependency or devDependency in package.json')
+        opts.version = pkg.version
+        return cb(null)
+      })
+    } else {
       return cb(null)
     }
   })
