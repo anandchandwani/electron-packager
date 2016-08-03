@@ -6,7 +6,7 @@
 
 ### Added
 
-* Add support for the new `electron` package name. #435
+* Support the new `electron` package name. #435
 
 ## [7.4.0] - 2016-07-31
 
