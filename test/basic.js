@@ -249,28 +249,19 @@ function createInferElectronTest (opts) {
 
     waterfall([
       function callPackager (cb) {
-        console.error('callPackager')
         packager(opts, cb)
       }, function runStat (paths, cb) {
-        console.error('runStat')
-        console.error(paths)
         finalPath = paths[0]
         fs.stat(finalPath, cb)
       }, function readFile (stats, cb) {
-        console.error('readFile')
-        console.error(stats)
         t.true(stats.isDirectory(), 'The expected output directory should exist')
         fs.readFile(path.join(opts.dir, 'package.json'), cb)
       }, function runStatNamePath (pkg, cb) {
-        console.error('runStatNamePath')
-        console.error(pkg)
         packageJSON = JSON.parse(pkg)
         // Set opts name to use generateNamePath
         opts.name = packageJSON.productName
         fs.stat(path.join(finalPath, generateNamePath(opts)), cb)
       }, function isFileOrDirectory (stats, cb) {
-        console.error('isFileOrDirectory')
-        console.error(stats)
         if (common.isPlatformMac(opts.platform)) {
           t.true(stats.isDirectory(), 'The Helper.app should reflect productName')
         } else {
@@ -278,8 +269,6 @@ function createInferElectronTest (opts) {
         }
         fs.readFile(path.join(finalPath, 'version'), cb)
       }, function assertVersionMatch (version, cb) {
-        console.error('assertVersionMatch')
-        console.error(version)
         t.equal(`v${packageJSON.devDependencies['electron']}`, version.toString(), 'The version should be inferred from installed `electron` version')
         cb()
       }
