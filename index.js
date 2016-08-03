@@ -5,7 +5,7 @@ const debug = require('debug')('electron-packager')
 const download = require('electron-download')
 const extract = require('extract-zip')
 const fs = require('fs-extra')
-const getPackageInfo = require('get-package-info')
+const prop = require('lodash.get')
 const metadata = require('./package.json')
 const os = require('os')
 const path = require('path')
@@ -49,49 +49,37 @@ function validateList (list, supported, name) {
 }
 
 function getNameAndVersion (opts, dir, cb) {
-  var props = []
-  if (!opts.name) props.push(['productName', 'name'])
-  if (!opts.version) {
-    props.push([
-      'dependencies.electron',
-      'devDependencies.electron',
-      'dependencies.electron-prebuilt',
-      'devDependencies.electron-prebuilt'
-    ])
-  }
+  var pkg = require(path.join(dir, 'package.json'))
+  if (!pkg) return cb(Error(`no package.json file found in ${dir}`))
 
   // Name and version provided, no need to infer
-  if (props.length === 0) return cb(null)
+  if (opts.name && opts.version) return cb(null)
 
-  // Search package.json files to infer name and version from
-  getPackageInfo(props, dir, function (err, result) {
-    if (err) return cb(err)
-    if (result.values.productName) {
-      debug('Inferring application name from productName or name in package.json')
-      opts.name = result.values.productName
-    }
-    if (result.values['dependencies.electron']) {
-      resolve('electron', {
-        basedir: path.dirname(result.source['dependencies.electron'].src)
-      }, function (err, res, pkg) {
-        if (err) return cb(err)
-        debug('Inferring target Electron version from electron dependency or devDependency in package.json')
-        opts.version = pkg.version
-        return cb(null)
-      })
-    } else if (result.values['dependencies.electron-prebuilt']) {
-      resolve('electron-prebuilt', {
-        basedir: path.dirname(result.source['dependencies.electron-prebuilt'].src)
-      }, function (err, res, pkg) {
-        if (err) return cb(err)
-        debug('Inferring target Electron version from electron-prebuilt dependency or devDependency in package.json')
-        opts.version = pkg.version
-        return cb(null)
-      })
-    } else {
+  // Infer name from package.json
+  opts.name = opts.name || prop(pkg, 'productName') || prop(pkg, 'name')
+
+  // Infer electron version from package.json
+  var electronVersion = prop(pkg, 'dependencies.electron') || prop(pkg, 'devDependencies.electron')
+  var electronPrebuiltVersion = prop(pkg, 'dependencies.electron-prebuilt') || prop(pkg, 'devDependencies.electron-prebuilt')
+  opts.version = opts.version || electronVersion || electronPrebuiltVersion
+
+  if (electronVersion) {
+    resolve('electron', {basedir: dir}, function (err, res, pkg) {
+      if (err) return cb(err)
+      debug('Inferring target Electron version from `electron` dependency or devDependency in package.json')
+      opts.version = pkg.version
       return cb(null)
-    }
-  })
+    })
+  } else if (electronPrebuiltVersion) {
+    resolve('electron-prebuilt', {basedir: dir}, function (err, res, pkg) {
+      if (err) return cb(err)
+      debug('Inferring target Electron version from `electron-prebuilt` dependency or devDependency in package.json')
+      opts.version = pkg.version
+      return cb(null)
+    })
+  } else {
+    return cb(null)
+  }
 }
 
 function createSeries (opts, archs, platforms) {

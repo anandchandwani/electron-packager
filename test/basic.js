@@ -193,7 +193,7 @@ function createOverwriteTest (opts) {
   }
 }
 
-function createInferTest (opts) {
+function createInferElectronPrebuiltTest (opts) {
   return function (t) {
     t.timeoutAfter(config.timeout)
 
@@ -227,6 +227,48 @@ function createInferTest (opts) {
         fs.readFile(path.join(finalPath, 'version'), cb)
       }, function (version, cb) {
         t.equal(`v${packageJSON.devDependencies['electron-prebuilt']}`, version.toString(), 'The version should be inferred from installed electron-prebuilt version')
+        cb()
+      }
+    ], function (err) {
+      t.end(err)
+    })
+  }
+}
+
+function createInferElectronTest (opts) {
+  return function (t) {
+    t.timeoutAfter(config.timeout)
+
+    // Don't specify name or version
+    delete opts.version
+    opts.dir = path.join(__dirname, 'fixtures', 'basic-renamed-to-electron')
+
+    var finalPath
+    var packageJSON
+
+    waterfall([
+      function (cb) {
+        packager(opts, cb)
+      }, function (paths, cb) {
+        finalPath = paths[0]
+        fs.stat(finalPath, cb)
+      }, function (stats, cb) {
+        t.true(stats.isDirectory(), 'The expected output directory should exist')
+        fs.readFile(path.join(opts.dir, 'package.json'), cb)
+      }, function (pkg, cb) {
+        packageJSON = JSON.parse(pkg)
+        // Set opts name to use generateNamePath
+        opts.name = packageJSON.productName
+        fs.stat(path.join(finalPath, generateNamePath(opts)), cb)
+      }, function (stats, cb) {
+        if (common.isPlatformMac(opts.platform)) {
+          t.true(stats.isDirectory(), 'The Helper.app should reflect productName')
+        } else {
+          t.true(stats.isFile(), 'The executable should reflect productName')
+        }
+        fs.readFile(path.join(finalPath, 'version'), cb)
+      }, function (version, cb) {
+        t.equal(`v${packageJSON.devDependencies['electron']}`, version.toString(), 'The version should be inferred from installed `electron` version')
         cb()
       }
     ], function (err) {
@@ -385,7 +427,8 @@ test('download argument test: download.{arch,platform,version} does not overwrit
   t.end()
 })
 
-util.testSinglePlatform('infer test', createInferTest)
+util.testSinglePlatform('infer test using `electron-prebuilt` package', createInferElectronPrebuiltTest)
+util.testSinglePlatform('infer test using `electron` package', createInferElectronTest)
 util.testSinglePlatform('infer missing fields test', createInferMissingFieldsTest)
 util.testSinglePlatform('infer with bad fields test', createInferWithBadFieldsTest)
 util.testSinglePlatform('defaults test', createDefaultsTest)
